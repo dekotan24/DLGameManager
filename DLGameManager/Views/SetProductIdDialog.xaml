@@ -1,0 +1,38 @@
+<Window x:Class="DLGameManager.Views.SetProductIdDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="作品IDを設定" Width="450" Height="200"
+        WindowStartupLocation="CenterOwner"
+        Background="#1e1e2e" ResizeMode="NoResize">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Foreground="#cdd6f4" FontSize="13" Margin="0,0,0,4"
+                   Text="DLsite (RJ/VJ/BJ) または FANZA (d_) の作品IDを入力"/>
+
+        <TextBox Grid.Row="1" x:Name="IdTextBox"
+                 Background="#383850" Foreground="#cdd6f4" CaretBrush="#cdd6f4"
+                 BorderBrush="#45455a" FontSize="15" Padding="8,6" Margin="0,4,0,4"
+                 KeyDown="OnKeyDown"/>
+
+        <TextBlock Grid.Row="2" x:Name="PreviewText"
+                   Foreground="#9399b2" FontSize="11" Margin="0,2,0,0"
+                   Text="例: RJ012345, d_123456"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="設定" Click="OnOk_Click" Padding="20,8" Margin="0,0,8,0"
+                    Background="#89b4fa" Foreground="#1e1e2e" FontWeight="SemiBold"
+                    BorderThickness="0" Cursor="Hand"/>
+            <Button Content="キャンセル" Click="OnCancel_Click" Padding="16,8"
+                    Background="#45455a" Foreground="#cdd6f4"
+                    BorderThickness="0" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Window>
