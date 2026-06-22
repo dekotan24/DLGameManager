@@ -431,6 +431,14 @@ public class MainViewModel : ObservableObject
 			});
 		};
 		WatchService.StartAll();
+		Task.Run(() =>
+		{
+			var missedFolders = WatchService.ScanExistingFolders();
+			if (missedFolders.Count > 0)
+			{
+				_dispatcher.Invoke(() => EnqueueFolders(missedFolders));
+			}
+		});
 	}
 
 	private void RefreshView()
