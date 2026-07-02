@@ -27,6 +27,8 @@ public class MainViewModel : ObservableObject
 
 	private readonly MetadataService _meta = new MetadataService();
 
+	private readonly ExclusionService _exclusion = new ExclusionService();
+
 	private readonly ConcurrentQueue<GameWork> _fetchQueue = new ConcurrentQueue<GameWork>();
 
 	private readonly Dispatcher _dispatcher = ((DispatcherObject)System.Windows.Application.Current).Dispatcher;
@@ -427,7 +429,8 @@ public class MainViewModel : ObservableObject
 		{
 			_dispatcher.Invoke((Action)delegate
 			{
-				EnqueueFolders(folders);
+				// 監視による自動検出: 手動削除された作品は再登録しない
+				EnqueueFolders(folders, bypassExclusion: false);
 			});
 		};
 		WatchService.StartAll();
@@ -436,7 +439,8 @@ public class MainViewModel : ObservableObject
 			var missedFolders = WatchService.ScanExistingFolders();
 			if (missedFolders.Count > 0)
 			{
-				_dispatcher.Invoke(() => EnqueueFolders(missedFolders));
+				// 起動時リコンサイル(自動): 手動削除された作品は再登録しない
+				_dispatcher.Invoke(() => EnqueueFolders(missedFolders, bypassExclusion: false));
 			}
 		});
 	}
@@ -632,10 +636,23 @@ public class MainViewModel : ObservableObject
 		}
 	}
 
-	public void EnqueueFolders(IEnumerable<string> folderPaths)
+	/// <param name="folderPaths">登録候補の作品フォルダ。</param>
+	/// <param name="bypassExclusion">
+	/// true(手動追加): 過去に手動削除された作品でも除外リストから外して再登録する。
+	/// false(監視/起動時スキャンの自動追加): 手動削除された作品フォルダはスキップする。
+	/// </param>
+	public void EnqueueFolders(IEnumerable<string> folderPaths, bool bypassExclusion = true)
 	{
 		foreach (string folderPath in folderPaths)
 		{
+			if (_exclusion.IsExcluded(folderPath))
+			{
+				if (!bypassExclusion)
+				{
+					continue;
+				}
+				_exclusion.Remove(folderPath);
+			}
 			if (Directory.Exists(folderPath) && _db.GetGameByFolderPath(folderPath) == null)
 			{
 				string fileName = Path.GetFileName(folderPath);
@@ -806,6 +823,9 @@ public class MainViewModel : ObservableObject
 		if (game != null)
 		{
 			_db.DeleteGame(game.Id);
+			// 監視フォルダ/起動時スキャンで自動的に復活しないよう除外リストに入れる
+			// (手動でフォルダ追加すれば除外解除されて再登録できる)
+			_exclusion.Add(game.FolderPath);
 			Games.Remove(game);
 			RebuildFilterOptions();
 			OnPropertyChanged("StatusText");

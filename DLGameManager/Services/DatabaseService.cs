@@ -33,6 +33,10 @@ public class DatabaseService
 			SqliteCommand val2 = val.CreateCommand();
 			try
 			{
+				// UI操作とバックグラウンドのメタデータ取得が並行して書き込むため、
+				// WALモードで読み書きの競合に強くする(DBファイルに永続化される設定なので初期化時の1回でよい)
+				((DbCommand)(object)val2).CommandText = "PRAGMA journal_mode=WAL;";
+				((DbCommand)(object)val2).ExecuteNonQuery();
 				((DbCommand)(object)val2).CommandText = "CREATE TABLE IF NOT EXISTS games (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    product_id TEXT NOT NULL,\n    source TEXT NOT NULL DEFAULT '',\n    title TEXT NOT NULL DEFAULT '',\n    circle_name TEXT NOT NULL DEFAULT '',\n    folder_path TEXT NOT NULL,\n    exe_path TEXT NOT NULL DEFAULT '',\n    thumbnail_path TEXT NOT NULL DEFAULT '',\n    thumbnail_url TEXT NOT NULL DEFAULT '',\n    tags TEXT NOT NULL DEFAULT '',\n    registered_at TEXT,\n    last_played_at TEXT,\n    play_count INTEGER NOT NULL DEFAULT 0,\n    rating INTEGER NOT NULL DEFAULT 0,\n    memo TEXT NOT NULL DEFAULT '',\n    UNIQUE(folder_path)\n)";
 				((DbCommand)(object)val2).ExecuteNonQuery();
 				string[] array = new string[3] { "ALTER TABLE games ADD COLUMN source TEXT NOT NULL DEFAULT ''", "ALTER TABLE games ADD COLUMN rating INTEGER NOT NULL DEFAULT 0", "ALTER TABLE games ADD COLUMN memo TEXT NOT NULL DEFAULT ''" };

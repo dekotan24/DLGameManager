@@ -13,6 +13,7 @@ public partial class WatchFoldersDialog : Window
     public WatchFoldersDialog(FolderWatchService watchService)
     {
         InitializeComponent();
+        Services.DarkTitleBar.Apply(this);
         _watchService = watchService;
         Folders = new ObservableCollection<string>(watchService.WatchPaths);
         FolderListBox.ItemsSource = Folders;

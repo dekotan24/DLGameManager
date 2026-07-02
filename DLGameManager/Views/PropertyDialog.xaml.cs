@@ -27,6 +27,7 @@ public partial class PropertyDialog : Window
 	public PropertyDialog(GameWork game)
 	{
 		InitializeComponent();
+		Services.DarkTitleBar.Apply(this);
 		Game = game;
 		LoadFields();
 		UpdateRenamePreview();

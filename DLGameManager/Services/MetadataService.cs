@@ -102,25 +102,29 @@ public class MetadataService
 
 	private async Task FetchDLsiteHtmlDetailsAsync(string productId, GameWork game)
 	{
+		// 以前は正規表現でHTML断片を切り出していたが、DLsiteの構造変更で静かに壊れる
+		// (空データを保存し続ける)ためAngleSharpのCSSセレクタベースに変更。
+		// セレクタはDLVoiceLibraryで実ページ検証済みのものを使用。
 		try
 		{
 			string url = "https://www.dlsite.com/maniax/work/=/product_id/" + productId + ".html";
 			string html = await _client.GetStringAsync(url);
-			Match makerMatch = Regex.Match(html, "data-maker-name=\"([^\"]+)\"");
-			if (makerMatch.Success)
+
+			var parser = new AngleSharp.Html.Parser.HtmlParser();
+			var doc = parser.ParseDocument(html);
+
+			string? circle = doc.QuerySelector("span.maker_name > a")?.TextContent.Trim();
+			if (!string.IsNullOrEmpty(circle))
 			{
-				game.CircleName = WebUtility.HtmlDecode(makerMatch.Groups[1].Value);
+				game.CircleName = circle;
 			}
-			Match genreSection = Regex.Match(html, "class=\"main_genre\"[^>]*>(.*?)</div>", RegexOptions.Singleline);
-			if (!genreSection.Success)
-			{
-				return;
-			}
-			MatchCollection tagMatches = Regex.Matches(genreSection.Groups[1].Value, ">([^<]+)</a>");
+
+			// ジャンルのアンカーは<div class="main_genre">でラップされているため子孫セレクタ(td a)を使う
+			var genreAnchors = doc.QuerySelectorAll("#work_outline tr > th:contains('ジャンル') + td a");
 			List<string> tags = new List<string>();
-			foreach (Match m in tagMatches)
+			foreach (var anchor in genreAnchors)
 			{
-				string tag = WebUtility.HtmlDecode(m.Groups[1].Value).Trim();
+				string tag = anchor.TextContent.Trim();
 				if (!string.IsNullOrEmpty(tag))
 				{
 					tags.Add(tag);

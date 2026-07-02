@@ -12,6 +12,7 @@ public partial class SetProductIdDialog : Window
     public SetProductIdDialog(string? currentId = null)
     {
         InitializeComponent();
+        Services.DarkTitleBar.Apply(this);
         if (!string.IsNullOrEmpty(currentId))
             IdTextBox.Text = currentId;
         IdTextBox.Focus();

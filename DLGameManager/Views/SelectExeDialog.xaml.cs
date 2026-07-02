@@ -9,6 +9,7 @@ public partial class SelectExeDialog : Window
     public SelectExeDialog(List<string> exePaths, string? currentExe)
     {
         InitializeComponent();
+        Services.DarkTitleBar.Apply(this);
         ExeListBox.ItemsSource = exePaths;
 
         if (currentExe != null && exePaths.Contains(currentExe))

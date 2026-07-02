@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Services.DarkTitleBar.Apply(this);
         Loaded += (_, _) =>
         {
             VM.BrowserNavigationRequested += url => Dispatcher.InvokeAsync(() => NavigateToUrl(url));
@@ -225,7 +226,8 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() == true && dialog.ScanRequested)
         {
             var folders = VM.WatchService.ScanExistingFolders();
-            VM.EnqueueFolders(folders);
+            // 監視フォルダの一括スキャン(自動検出扱い): 手動削除された作品は再登録しない
+            VM.EnqueueFolders(folders, bypassExclusion: false);
         }
     }
 
@@ -329,7 +331,9 @@ public partial class MainWindow : Window
         if (sender is not FrameworkElement fe || fe.DataContext is not GameWork game) return;
 
         var result = System.Windows.MessageBox.Show(
-            $"「{game.Title}」をリストから削除しますか？\n（作品ファイルは削除されません）",
+            $"「{game.Title}」をリストから削除しますか？\n" +
+            "（作品ファイルは削除されません）\n" +
+            "（監視フォルダによる自動登録では復活しません。手動追加すれば元に戻せます）",
             "確認", MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
 
         if (result == MessageBoxResult.Yes)
